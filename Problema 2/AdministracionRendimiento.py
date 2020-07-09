@@ -121,7 +121,7 @@ def ServidorFTP(host, port):
     server.serve_forever()
 
 def SensorSSH(host, puerto, usernameSSH, passwordSSH):
-    inicio = int( time.time() )
+    inicio = int(round(time.time() * 1000))
     try:
         datos=dict( hostname = host, port = puerto, username = usernameSSH, password = passwordSSH)
         ssh_client=paramiko.SSHClient()
@@ -137,7 +137,12 @@ def SensorSSH(host, puerto, usernameSSH, passwordSSH):
         NumeroConexiones = "0"
         TraficoRecibido = "0"
         TraficoEnviado = "0"
-    return EstadoServidorSsh, NumeroConexiones, TraficoEnviado, TraficoRecibido, str( int(time.time()) - inicio)
+    tiempo = ( int(round(time.time() * 1000)) - inicio)
+    if( tiempo > 1000):
+        total = str( tiempo / 1000) + "s"
+    else:
+        total = str( tiempo ) + "ms"
+    return EstadoServidorSsh, NumeroConexiones, TraficoEnviado, TraficoRecibido, total
 
 #thread_read = threading.Thread(target = ServidorFTP, args=["127.0.0.1", 8080,])
 #thread_read.start()
@@ -148,7 +153,7 @@ time.sleep(4)
 #os.system("clear")
 
 def SensorHTTP(host, puerto):
-    inicio = int( time.time() )
+    inicio = int(round(time.time() * 1000))
     try:
         conn = httplib2.Http("")        
         (resp_headers, content) = conn.request("http://" + host + ":" + puerto , "GET")
@@ -159,11 +164,16 @@ def SensorHTTP(host, puerto):
     except :        
         EstadoServidorHTTP = "Down"
         BytesRecibidos = "0"
-        AnchoBanda = "0" 
-    return EstadoServidorHTTP, BytesRecibidos, AnchoBanda, str( int(time.time()) - inicio)
+        AnchoBanda = "0"
+    tiempo = ( int(round(time.time() * 1000)) - inicio)
+    if( tiempo > 1000):
+        total = str( tiempo / 1000) + "s"
+    else:
+        total = str( tiempo ) + "ms"        
+    return EstadoServidorHTTP, BytesRecibidos, AnchoBanda, total
 
 def SensorFTP(host,port):
-    inicio = int( time.time() )
+    inicio = int(round(time.time() * 1000))
     try:
         ftp = FTP('')
         ftp.connect(host, port)
@@ -180,10 +190,15 @@ def SensorFTP(host,port):
     except:
         EstadoServidorFtp = "Down"
         RespuestaFTP = "--"
-    return EstadoServidorFtp, RespuestaFTP, str( int(time.time()) - inicio )
+    tiempo = ( int(round(time.time() * 1000)) - inicio)
+    if( tiempo > 1000):
+        total = str( tiempo / 1000) + "s"
+    else:
+        total = str( tiempo ) + "ms"
+    return EstadoServidorFtp, RespuestaFTP, total
 
 def SensorDNS(dominio):
-    inicio = int( time.time() )
+    inicio = int(round(time.time() * 1000))
     try:
         name = dominio
         for qtype in 'A', 'AAAA', 'MX', 'NS', 'TXT', 'SOA':
@@ -192,8 +207,14 @@ def SensorDNS(dominio):
                 continue #print(answer.rrset)
         EstadoServidorDNS = "Up"
     except:
-        EstadoServidorDNS = "Down"
-    return EstadoServidorDNS, str( int(time.time()) - inicio)
+        EstadoServidorDNS = "Down"    
+
+    tiempo = ( int(round(time.time() * 1000)) - inicio)
+    if( tiempo > 1000):
+        total = str( tiempo / 1000) + "s"
+    else:
+        total = str( tiempo ) + "ms"
+    return EstadoServidorDNS, total
 
 def MonitorearServidores(generarReporte = False):
     if( generarReporte):
@@ -279,7 +300,7 @@ def MonitorearServidores(generarReporte = False):
         TServidorFTP.textLine( "" )
         TServidorFTP.textLine( "Estado del servidor: " +  EstadoServidorFTP  )
         TServidorFTP.textLine( "Respuesta del servidor: " +  RespuestaFTP   )
-        TServidorFTP.textLine( "Tiempo de respuesta del servidor: " +  TiempoFTP  +"s" )
+        TServidorFTP.textLine( "Tiempo de respuesta del servidor: " +  TiempoFTP )
         documento.drawText(TServidorFTP)
 
         TServidorHTTP = documento.beginText(40, 715)
@@ -289,7 +310,7 @@ def MonitorearServidores(generarReporte = False):
         TServidorHTTP.textLine( "Estado del servidor: " + EstadoServidorHTTP )
         TServidorHTTP.textLine( "Bytes recibidos: " +  BytesRecibidos )
         TServidorHTTP.textLine( "Ancho de banda: " +  AnchoBanda )
-        TServidorHTTP.textLine( "Tiempo de respuesta del servidor: " +  TiempoHTTP + "s")
+        TServidorHTTP.textLine( "Tiempo de respuesta del servidor: " +  TiempoHTTP )
         documento.drawText(TServidorHTTP)
 
         TServidorDNS = documento.beginText(40, 615)
@@ -298,7 +319,7 @@ def MonitorearServidores(generarReporte = False):
         TServidorDNS.textLine( "" )
         TServidorDNS.textLine( "Dominio: " +  dominio  )
         TServidorDNS.textLine( "Estado del servidor: " +  EstadoServidorDNS  )
-        TServidorDNS.textLine( "Tiempo de respuesta del servidor: " +  TiempoDNS  +"s" )
+        TServidorDNS.textLine( "Tiempo de respuesta del servidor: " +  TiempoDNS )
         documento.drawText(TServidorDNS)
 
         TServidorSSH = documento.beginText(40, 525)
@@ -309,7 +330,7 @@ def MonitorearServidores(generarReporte = False):
         TServidorSSH.textLine( "Trafico enviado: " +  TraficoEnviado )
         TServidorSSH.textLine( "Trafico recibido: " +  TraficoRecibido )
         TServidorSSH.textLine( "Numero de conexiones: " +  NumeroConexiones )
-        TServidorSSH.textLine( "Tiempo de respuesta del servidor: " +  TiempoSSH  +"s" )
+        TServidorSSH.textLine( "Tiempo de respuesta del servidor: " +  TiempoSSH )
         documento.drawText(TServidorSSH)
         documento.save()
 
